@@ -5,6 +5,7 @@ const transactionSchema = new mongoose.Schema({
   transaction_id: { type: String, required: true },
   account_id: { type: String, required: true },
   name: { type: String },
+  category: { type: String },
   amount: { type: Number },
   date: { type: Number },
   pending: { type: Boolean },

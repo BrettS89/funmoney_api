@@ -6,6 +6,7 @@ const util = require('../services/utilities');
 const plaid = require('../services/plaid');
 const authService = require('../services/auth');
 
+// link bank account ////////////////////////////
 exports.createItem = async (req, res) => {
   try {
     const user = authService.verifyToken(req);
@@ -23,48 +24,7 @@ exports.createItem = async (req, res) => {
   }
 };
 
-exports.updateExpenses = async (req, res) => {
-  try {
-    const user = authService.verifyToken(req);
-    const foundUser = await User.findById(user.user._id);
-    const currentDate = util.stringifyISODate(util.currentISODate());
-    const preStartDate = await SetDate.findById(keys.date);
-    const startDate = util.stringifyISODate(preStartDate.date);
-    //Get transactions between current date and Date from Plaid API
-    const myTransactions = await plaid.client.getTransactions(foundUser.access_token, startDate, currentDate);
-    console.log(myTransactions);
-    const accountTransactions = [];
-    
-    const transactions = await Transaction.find({ date: { $gte: startDate.date } });
-    const transaction_ids = transactions.map(transaction => {
-      return transaction.transaction_id;
-    });
-    
-    accountTransactions.forEach(async transaction => {
-      if(transaction_ids.indexOf(transaction.transaction_id) === 1 && transaction.pending === true) {
-
-        const newTransaction = new Transaction({
-          transaction_id: transaction.transaction_id,
-          account_id: transaction.account_id,
-          name: transaction.name,
-          //fix date to right number format
-          date: transaction.date,
-          amount: transaction.amount,
-        });
-
-        try {
-          await newTransaction.save();
-        } catch(e) {
-          console.log('transaction updates error', e);
-        }
-
-      }
-    });
-  } catch(e) {
-    console.log(e);
-  }
-};
-
+// Update and get transactions //////////////////
 exports.getTransactions = async (req, res) => {
   try {
     const user = authService.verifyToken(req);
@@ -89,6 +49,7 @@ exports.getTransactions = async (req, res) => {
           transaction_id: t.transaction_id,
           account_id: t.account_id,
           name: foundUser.fullName,
+          category: t.category ? t.category[1] ? t.category[1] : t.category[0] : 'null',
           amount: t.amount,
           date: util.currentISODate(),
           pending: t.pending,
@@ -98,16 +59,15 @@ exports.getTransactions = async (req, res) => {
     });
 
     setTimeout(async () => {
-      const updatedTransactions = await Transaction.find({ user: foundUser._id });
-      console.log(updatedTransactions);
+      const updatedTransactions = await Transaction.find({ user: foundUser._id })
+        .where('date').gte(preStartDate.date)
+        .exec();
       res.status(200).json(updatedTransactions);
     }, 600);
-    
   }
+
   catch(e) {
     console.log(e);
     res.status(500).json(e);
   }
-    
-
 };
