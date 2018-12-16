@@ -8,8 +8,8 @@ const appRoutes = require('./src/routes/app');
 const authRoutes = require('./src/routes/auth');
 const transactionRoutes = require('./src/routes/transactions');
 const util = require('./src/services/utilities');
-
 const Dayte = require('./src/models/Date');
+const update = require('./src/services/updateTransactions');
 
 mongoose.Promise = global.Promise;
 mongoose.connect(keys.mongoURI, { useNewUrlParser: true });
@@ -28,6 +28,11 @@ let timer = schedule.scheduleJob({hour: 0, minute: 1, dayOfWeek: 1}, async () =>
     console.log(e);
   }
 });
+
+// Timer to update
+setInterval(async () => {
+  await update.updateTransactions();
+}, 600000);
 
 app.use('/transactions', transactionRoutes);
 app.use('/auth', authRoutes);

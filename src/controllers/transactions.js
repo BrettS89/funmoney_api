@@ -24,6 +24,22 @@ exports.createItem = async (req, res) => {
   }
 };
 
+// Set budget ///////////////////////////////////
+exports.setBudget = async (req, res) => {
+  try {
+    const user = authService.verifyToken(req);
+    let foundUser = await User.findById(user.user._id);
+    foundUser.weeklyBudget = req.body.budget;
+    await foundUser.save();
+    res.status(200).json({ status: 'success' });
+  }
+
+  catch(e) {
+    console.log(e);
+    res.status(500).json(e);
+  }
+};
+
 // Update and get transactions //////////////////
 exports.getTransactions = async (req, res) => {
   try {
@@ -41,15 +57,15 @@ exports.getTransactions = async (req, res) => {
     });
 
     const myTransactions = await plaid.client.getTransactions(foundUser.access_token, startDate, currentDate);
-    
+
     await myTransactions.transactions.forEach(async t => {
-      if(!t.pending && existingTransactionIds.indexOf(t.transaction_id) === -1) {
+      if(t.pending && existingTransactionIds.indexOf(t.transaction_id) === -1) {
         const newTransaction = new Transaction({
           user: user.user._id,
           transaction_id: t.transaction_id,
           account_id: t.account_id,
-          name: foundUser.fullName,
-          category: t.category ? t.category[1] ? t.category[1] : t.category[0] : 'null',
+          name: t.name,
+          category: t.category ? t.category[1] ? t.category[1] : t.category[0] : 'Unspecified',
           amount: t.amount,
           date: util.currentISODate(),
           pending: t.pending,
@@ -62,7 +78,20 @@ exports.getTransactions = async (req, res) => {
       const updatedTransactions = await Transaction.find({ user: foundUser._id })
         .where('date').gte(preStartDate.date)
         .exec();
-      res.status(200).json(updatedTransactions);
+
+      let total = 0;
+
+      updatedTransactions.forEach(t => {
+        total += t.amount;
+      });
+
+      const toReturn = {
+        budget: foundUser.weeklyBudget,
+        spent: total,
+        remaining: foundUser.weeklyBudget - total,
+      };
+
+      res.status(200).json(toReturn);
     }, 600);
   }
 
