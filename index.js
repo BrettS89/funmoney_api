@@ -22,13 +22,13 @@ rule.minute = 44;
 let timer = schedule.scheduleJob({hour: 0, minute: 1, dayOfWeek: 1}, async () => {
   try {
     let date = await Dayte.findById(keys.date);
-    if(!date) {
-      newDate = new Dayte({
-        date: util.currentISODate()
-      });
-      await newDate.save();
-      return;
-    }
+    // if(!date) {
+    //   newDate = new Dayte({
+    //     date: util.currentISODate()
+    //   });
+    //   await newDate.save();
+    //   return;
+    // }
     date.date = util.currentISODate();
     await date.save();
   } catch(e) {

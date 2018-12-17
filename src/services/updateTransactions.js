@@ -13,6 +13,7 @@ exports.updateTransactions = async () => {
       const foundUser = await User.findById(user._id);
       const currentDate = util.stringifyISODate(util.currentISODate());
       const preStartDate = await Datee.findById(keys.date);
+      console.log(preStartDate);
       const startDate = util.stringifyISODate(preStartDate.date);
       const savedTransactions = await Transaction.find({ user: foundUser._id })
         .where('date').gte(preStartDate.date)
