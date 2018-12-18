@@ -9,7 +9,6 @@ exports.updateTransactions = async () => {
   try {
     const users = await User.find();
     const preStartDate = await Datee.findById(keys.date);
-    console.log(preStartDate);
 
     users.forEach(async user => {
       const foundUser = await User.findById(user._id);

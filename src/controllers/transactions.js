@@ -55,11 +55,14 @@ exports.getTransactions = async (req, res) => {
     const existingTransactionIds = savedTransactions.map(t => {
       return t.transaction_id;
     });
+    console.log(existingTransactionIds);
 
     const myTransactions = await plaid.client.getTransactions(foundUser.access_token, startDate, currentDate);
 
     await myTransactions.transactions.forEach(async t => {
+      console.log(t.name, t.amount, t.pending);
       if(t.pending && existingTransactionIds.indexOf(t.transaction_id) === -1) {
+        console.log(t.name);
         const newTransaction = new Transaction({
           user: user.user._id,
           transaction_id: t.transaction_id,
