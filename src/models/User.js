@@ -9,6 +9,7 @@ const userSchema = new mongoose.Schema({
   access_token: { type: String },
   item_id: { type: String },
   weeklyBudget: { type: Number },
+  dontTrack: [],
 });
 
 module.exports = mongoose.model('User', userSchema);
