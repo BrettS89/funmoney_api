@@ -104,6 +104,8 @@ exports.getTransactions = async (req, res) => {
         remaining: foundUser.weeklyBudget - total,
       };
 
+      console.log(toReturn);
+
       res.status(200).json(toReturn);
     }, 600);
   }
