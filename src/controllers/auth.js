@@ -11,6 +11,7 @@ exports.signup = async (req, res) => {
       firstName: req.body.firstName,
       lastName: req.body.lastName,
       fullName: `${req.body.firstName} ${req.body.lastName}`,
+      dontTrack: [],
     });
 
     const savedUser = await user.save();

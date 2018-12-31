@@ -25,20 +25,25 @@ exports.updateTransactions = async () => {
       const myTransactions = await plaid.client.getTransactions(foundUser.access_token, startDate, currentDate);
 
       await myTransactions.transactions.forEach(async t => {
-        if(t.pending && existingTransactionIds.indexOf(t.transaction_id) === -1) {
-          const newTransaction = new Transaction({
-            user: user._id,
-            transaction_id: t.transaction_id,
-            account_id: t.account_id,
-            name: t.name,
-            category: t.category ? t.category[1] ? t.category[1] : t.category[0] : 'Unspecified',
-            amount: t.amount,
-            date: util.currentISODate(),
-            pending: t.pending,
-          });
-          await newTransaction.save();
-        }
+        foundUser.dontTrack.forEach(async tr => {
+          if(t.name !== tr.name && t.amount !== tr.amount) {
+            if(t.pending && existingTransactionIds.indexOf(t.transaction_id) === -1) {
+              const newTransaction = new Transaction({
+                user: user.user._id,
+                transaction_id: t.transaction_id,
+                account_id: t.account_id,
+                name: t.name,
+                category: t.category ? t.category[1] ? t.category[1] : t.category[0] : 'Unspecified',
+                amount: t.amount,
+                date: util.currentISODate(),
+                pending: t.pending,
+              });
+              await newTransaction.save();
+            }
+          }
+        });
       });
+
     });
     console.log('executed');
   }
